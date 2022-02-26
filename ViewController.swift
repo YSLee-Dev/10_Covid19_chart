@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import Charts
+import Alamofire
 
 class ViewController: UIViewController {
 
@@ -74,15 +76,25 @@ class ViewController: UIViewController {
         return stack
     }()
     
-    var chartView : UIView = {
-        let view = UIView()
-        view.backgroundColor = .gray
+    var chartView : PieChartView = {
+        let view = PieChartView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     override func viewDidLoad() {
         viewSet()
+        self.covidDataLoad(completionHandler: { [weak self] result in
+            guard let self = self else{return}
+            switch result {
+            case let .success(data):
+                print(data)
+                self.todayCovid.text = data.korea.newCase
+                self.totalCovid.text = data.korea.totalCase
+            case let .failure(error):
+                print(error)
+            }
+        })
     }
 
     private func viewSet(){
@@ -117,6 +129,29 @@ class ViewController: UIViewController {
             self.chartView.topAnchor.constraint(equalTo: self.mainStackView.bottomAnchor, constant: 10),
             self.chartView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -10)
         ])
+    }
+    
+    private func covidDataLoad(completionHandler:@escaping (Result<CityCovidOverView, Error>) -> Void){
+        let url = "https://api.corona-19.kr/korea/country/new/"
+        let param = [
+            "serviceKey" : "BJp5fNoPjOmiD4a9wSEcY8helrA2Q7UxR"
+        ]
+        
+        AF.request(url, method: .get, parameters: param).responseData(completionHandler: { response in
+            switch response.result{
+            case let .success(data):
+                do{
+                    let decoder = JSONDecoder()
+                    let result = try decoder.decode(CityCovidOverView.self, from: data)
+                    completionHandler(.success(result))
+                }catch{
+                    completionHandler(.failure(error))
+                }
+                
+            case let .failure(error):
+                completionHandler(.failure(error))
+            }
+        })
     }
 }
 
