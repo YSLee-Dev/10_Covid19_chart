@@ -42,7 +42,6 @@ class ViewController: UIViewController {
         label.text = "0명"
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.boldSystemFont(ofSize: 20)
-        label.textColor = UIColor(hue: 0, saturation: 0.57, brightness: 0.98, alpha: 1.0)
         label.textAlignment = .center
         return label
     }()
@@ -52,6 +51,7 @@ class ViewController: UIViewController {
         label.text = "0명"
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textColor = UIColor(hue: 0, saturation: 0.57, brightness: 0.98, alpha: 1.0)
         label.textAlignment = .center
         return label
     }()
@@ -88,9 +88,11 @@ class ViewController: UIViewController {
             guard let self = self else{return}
             switch result {
             case let .success(data):
-                print(data)
-                self.todayCovid.text = data.korea.newCase
                 self.totalCovid.text = data.korea.totalCase
+                self.todayCovid.text = data.korea.newCase
+                
+                let list = self.covidOverviewList(cityCovidOverview: data)
+                self.chatViewSet(covidOverviewList: list)
             case let .failure(error):
                 print(error)
             }
@@ -117,8 +119,8 @@ class ViewController: UIViewController {
         self.labelStackView.addArrangedSubview(self.todayLabel)
         self.mainStackView.addArrangedSubview(self.labelStackView)
         
-        self.covidStackView.addArrangedSubview(self.todayCovid)
         self.covidStackView.addArrangedSubview(self.totalCovid)
+        self.covidStackView.addArrangedSubview(self.todayCovid)
         self.mainStackView.addArrangedSubview(self.covidStackView)
         
         
@@ -153,5 +155,42 @@ class ViewController: UIViewController {
             }
         })
     }
+    
+    private func covidOverviewList(cityCovidOverview:CityCovidOverView)-> [CovidOverView]{
+        return [
+            cityCovidOverview.seoul,
+            cityCovidOverview.busan,
+            cityCovidOverview.daegu,
+            cityCovidOverview.incheon,
+            cityCovidOverview.gwangju,
+            cityCovidOverview.daejeon,
+            cityCovidOverview.ulsan,
+            cityCovidOverview.sejong,
+            cityCovidOverview.gyeonggi,
+            cityCovidOverview.chungbuk,
+            cityCovidOverview.chungnam,
+            cityCovidOverview.jeonnam,
+            cityCovidOverview.gyeongbuk,
+            cityCovidOverview.gyeongnam,
+            cityCovidOverview.jeju,
+        ]
+    }
+    
+    private func chatViewSet(covidOverviewList:[CovidOverView]){
+        let entries = covidOverviewList.compactMap{ [weak self] overview -> PieChartDataEntry? in
+            guard let self = self else {return nil}
+            return PieChartDataEntry(value: self.removeFormatString(string: overview.newCase), label: overview.countryName, data: overview)
+        }
+        
+        let dataSet = PieChartDataSet(entries: entries, label: "코로나 발생 현황")
+        self.chartView.data = PieChartData(dataSet: dataSet)
+    }
+    
+    private func removeFormatString(string:String)-> Double{
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter.number(from: string)?.doubleValue ?? 0
+    }
+    
 }
 
