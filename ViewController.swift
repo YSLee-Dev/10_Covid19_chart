@@ -183,7 +183,18 @@ class ViewController: UIViewController {
         }
         
         let dataSet = PieChartDataSet(entries: entries, label: "코로나 발생 현황")
+        dataSet.sliceSpace = 1
+        dataSet.entryLabelColor = .black
+        dataSet.valueTextColor = .black
+        dataSet.xValuePosition = .outsideSlice
+        dataSet.valueLinePart1OffsetPercentage = 0.8
+        dataSet.valueLinePart1Length = 0.2
+        dataSet.valueLinePart2Length = 0.3
+        
+        dataSet.colors = ChartColorTemplates.vordiplom() + ChartColorTemplates.joyful() + ChartColorTemplates.pastel() + ChartColorTemplates.material()
+        
         self.chartView.data = PieChartData(dataSet: dataSet)
+        self.chartView.spin(duration: 0.3, fromAngle: self.chartView.rotationAngle, toAngle: self.chartView.rotationAngle + 100)
     }
     
     private func removeFormatString(string:String)-> Double{
