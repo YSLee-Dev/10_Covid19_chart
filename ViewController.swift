@@ -125,6 +125,7 @@ class ViewController: UIViewController {
         
         
         self.view.addSubview(self.chartView)
+        self.chartView.delegate = self
         NSLayoutConstraint.activate([
             self.chartView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor, constant: margin),
             self.chartView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -margin),
@@ -205,3 +206,13 @@ class ViewController: UIViewController {
     
 }
 
+extension ViewController : ChartViewDelegate {
+    func chartValueSelected(_ chartView: ChartViewBase, entry: ChartDataEntry, highlight: Highlight) {
+        let covidDetailViewController = CovidDetailViewController()
+        
+        guard let covidOverView = entry.data as? CovidOverView else {return}
+        covidDetailViewController.covidOverview = covidOverView
+        
+        self.navigationController?.pushViewController(covidDetailViewController, animated: true)
+    }
+}
