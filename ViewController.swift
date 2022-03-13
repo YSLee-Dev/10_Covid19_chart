@@ -73,11 +73,19 @@ class ViewController: UIViewController {
         stack.axis = .vertical
         stack.alignment = .fill
         stack.distribution = .fillEqually
+        stack.isHidden = true
         return stack
     }()
     
     var chartView : PieChartView = {
         let view = PieChartView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        return view
+    }()
+    
+    var indicatorView : UIActivityIndicatorView = {
+        let view = UIActivityIndicatorView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -86,6 +94,13 @@ class ViewController: UIViewController {
         viewSet()
         self.covidDataLoad(completionHandler: { [weak self] result in
             guard let self = self else{return}
+            
+            // 인디케이션 부분
+            self.indicatorView.stopAnimating()
+            self.chartView.isHidden = false
+            self.mainStackView.isHidden = false
+            self.indicatorView.isHidden = true
+            
             switch result {
             case let .success(data):
                 self.totalCovid.text = data.korea.totalCase
@@ -107,6 +122,16 @@ class ViewController: UIViewController {
         
         guard let margin = self.navigationController?.systemMinimumLayoutMargins.leading else{return}
         
+        // 인디케이션 부분
+        self.view.addSubview(self.indicatorView)
+        NSLayoutConstraint.activate([
+            self.indicatorView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            self.indicatorView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor)
+        ])
+        
+        self.indicatorView.startAnimating()
+        
+        // 메인 뷰 생성 부분
         self.view.addSubview(self.mainStackView)
         NSLayoutConstraint.activate([
             self.mainStackView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor, constant: margin),
@@ -135,6 +160,7 @@ class ViewController: UIViewController {
     }
     
     private func covidDataLoad(completionHandler:@escaping (Result<CityCovidOverView, Error>) -> Void){
+        // 서버 통신 부분
         let url = "https://api.corona-19.kr/korea/country/new/"
         let param = [
             "serviceKey" : "BJp5fNoPjOmiD4a9wSEcY8helrA2Q7UxR"
